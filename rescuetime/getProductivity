@@ -1,0 +1,8 @@
+#! /bin/bash
+
+# $1 the api key of the user
+# $2 start date
+# $3 end date
+# the format has to be ISO YYY-MM-DD
+
+curl --data "key=$1&format=json&restrict_begin=$2&restrict_end=$3" https://www.rescuetime.com/anapi/data | python -m json.tool >> output-productivity.json
