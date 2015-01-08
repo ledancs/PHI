@@ -1,58 +1,41 @@
-// read the json data
-var data = require('./output-productivity');
-// console.log(data.row_headers);
-console.log("Total number of activities: " + data.rows.length);
+var fs = require('fs');
 
-/* We get the index of the row and the name of the poperty we want the value
- * the name comes from the row headers.
- * Make sure it is spelled exactly the same.
- */
-var getPropertyFromRow = function(i, property){
-    var j = data.row_headers.indexOf(property);
-    return data.rows[i][j];
-};
+fs.readFile('output-productivity.json', 'utf8', function(error, data){
+    var obj;
+    if(error) throw error;
+    obj= JSON.parse(data);
+    // console.log(data.row_headers);
 
-/* Using the previous functionw e only check for activities
- * that have the values of 1 or 2 ( productive or very productive ).
- */
-var getProductiveTime = function(){
+    console.log("Total number of activities: " + obj.rows.length); // testing the number of rows
+    console.log("Total types of activities: " + obj.row_headers.join(',')); // testing the headers
+    console.log("Index of Rank: " + obj.row_headers.indexOf('Rank')); // testing the property's index
+
+    // get the total time
     var totalTime = 0;
-    for(var i = 0; i < data.rows.length; i ++){
-        if(getPropertyFromRow(i, 'Productivity') > 0){
-            totalTime += getPropertyFromRow(i, 'Time Spent (seconds)');
+    // the index that corresponds to the "Time Spent" column
+    var j = obj.row_headers.indexOf('Time Spent (seconds)');
+    console.log("Index for the 'Time Spent (seconds)' " + j);
+    // iterate for each row
+    for(var i = 0; i < obj.rows.length; i ++){
+        totalTime += obj.rows[i][j]; // add the time using the indexes
+    }
+    console.log("Total time logged in (seconds) " + totalTime);
+    console.log("Total time logged in (minutes) " + Math.floor(totalTime/60));
+
+    // get the total productive time
+    var totalProductiveTime = 0;
+    var productivity; // the productivity index of each row/entry
+    var k = obj.row_headers.indexOf('Productivity'); // get the index of the productivity entry for each row
+    console.log("Index for the 'Productivity' " + k); // check that it works
+    for(var i = 0; i < obj.rows.length; i ++){
+        productivity = obj.rows[i][k];
+        // add the time spent, the index j comes from the previous iteration
+        // it holds the index corresponding to the 'Time Spent (seconds)'
+        if(productivity > 0){
+            totalProductiveTime += obj.rows[i][j];
         }
     }
-    return totalTime;
-};
+    console.log("Productive time (seconds) " + totalProductiveTime);
+    console.log("Total time logged in (minutes) " + Math.floor(totalProductiveTime/60));
 
-/*
- * Sum up all the time spent on each activity
- */
-
-var getTotalTime = function(){
-    var totalTime = 0;
-    for(var i = 0; i < data.rows.length; i ++){
-        totalTime += getPropertyFromRow(i, 'Time Spent (seconds)');
-    }
-    return totalTime;
-};
-
-var productiveTime = getProductiveTime();
-// convert to hours
-var productiveTimeInHours = Math.floor(productiveTime/3600);
-// obtain the remainder in seconds
-var productiveTimeModuloSeconds = productiveTime%3600;
-// convert the remainder to minutes
-var productiveTimeLeftMinutes = Math.floor(productiveTimeModuloSeconds/60);
-console.log('Total productive time in hours: ' + productiveTimeInHours + ' and ' + productiveTimeLeftMinutes + ' minutes' );
-
-// the same goes for the total time
-var totalTime = getTotalTime();
-var totalTimeInHours = Math.floor(totalTime/3600);
-var totalTimeModuloSeconds = totalTime%3600;
-var totalTimeLeftMinutes = Math.floor(totalTimeModuloSeconds/60);
-console.log('Total logged time in hours: ' + totalTimeInHours + ' and ' + totalTimeLeftMinutes + ' minutes' );
-
-// we calculate in terms of seconds the proportion as a percentage.
-var ratio = (productiveTime * 100) / totalTime;
-console.log('You were ' + Math.floor(ratio) + '% of your logged time productive.');
+});

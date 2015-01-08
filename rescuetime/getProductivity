@@ -4,5 +4,6 @@
 # $2 start date
 # $3 end date
 # the format has to be ISO YYY-MM-DD
-
+# remove the old file first
+rm output-productivity.json
 curl --data "key=$1&format=json&restrict_begin=$2&restrict_end=$3" https://www.rescuetime.com/anapi/data | python -m json.tool >> output-productivity.json
